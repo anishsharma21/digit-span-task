@@ -15,7 +15,12 @@ const COLLECTION_NAME = 'results';
 // MongoDB client
 const client = new MongoClient(MONGODB_URI, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    ssl: true,
+    tls: true,
+    tlsAllowInvalidCertificates: false,
+    connectTimeoutMS: 10000,
+    serverSelectionTimeoutMS: 10000
 });
 
 // Middleware
@@ -24,13 +29,26 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '..'))); // Serve files from parent directory
 
 // Connect to MongoDB
+// Update your connectToMongoDB function
 async function connectToMongoDB() {
     try {
         await client.connect();
         console.log('Connected to MongoDB');
+        
+        // Test the connection with a simple query
+        const database = client.db(DB_NAME);
+        await database.command({ ping: 1 });
+        console.log("MongoDB connection verified with ping");
+        
         return true;
     } catch (error) {
         console.error('MongoDB connection error:', error);
+        
+        // Log more detailed error information
+        if (error.name === 'MongoServerSelectionError') {
+            console.error('Could not select MongoDB server. Check your connection string and network settings.');
+        }
+        
         return false;
     }
 }
