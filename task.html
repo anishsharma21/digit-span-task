@@ -245,6 +245,7 @@
                     <br><br>
                     This means you can remember <span id="finalScoreText"></span> digits in sequence.
                 </div>
+                <button type="button" id="sendResultsButton" style="background-color: #3498db; color: white; margin-top: 20px;">Submit Results</button>
                 <div class="feedback correct" style="margin-top: 40px;">
                     Thank you for participating in this task!
                 </div>
@@ -444,6 +445,62 @@
                         
                     case 7: // Practice complete / Start actual task
                         document.getElementById('startTaskButton').addEventListener('click', startActualTask);
+                        break;
+
+                    case 8: // Final score screen
+                        const scoreMessage = document.getElementById('finalScore');
+                        const scoreText = document.getElementById('finalScoreText');
+                        const sendResultsButton = document.getElementById('sendResultsButton');
+                        
+                        if (scoreMessage && scoreText) {
+                            scoreMessage.textContent = finalScore;
+                            scoreText.textContent = `${finalScore} digits in sequence`;
+                        }
+                        
+                        if (sendResultsButton) {
+                            sendResultsButton.addEventListener('click', () => {
+                                // Get or generate a task ID
+                                let taskId = localStorage.getItem('digitSpanTaskId');
+                                if (!taskId) {
+                                    taskId = 'unknown'; // Fallback if no ID is found
+                                }
+                                
+                                // Change button state
+                                sendResultsButton.textContent = "Sending...";
+                                sendResultsButton.disabled = true;
+                                
+                                // Send data to server
+                                const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                                    ? 'http://localhost:3000/api/save-result'  // Development URL
+                                    : '/api/save-result';                      // Production URL (relative to deployed domain)
+
+                                fetch(apiUrl, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        taskId: taskId,
+                                        score: finalScore,
+                                        timestamp: new Date().toISOString()
+                                    })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    sendResultsButton.textContent = "Results Saved!";
+                                    sendResultsButton.style.backgroundColor = "#28a745";
+                                    setTimeout(() => {
+                                        window.close(); // Close the current tab
+                                    }, 2000); // Delay to show success message
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    sendResultsButton.textContent = "Failed to Save";
+                                    sendResultsButton.style.backgroundColor = "#dc3545";
+                                    sendResultsButton.disabled = false;
+                                });
+                            });
+                        }
                         break;
                 }
             }
