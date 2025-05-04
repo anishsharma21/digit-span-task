@@ -1,13 +1,15 @@
 {
-    "version": 2,
-    "builds": [
-      { "src": "server/server.js", "use": "@vercel/node" }
-    ],
-    "routes": [
-      { "src": "/signup", "dest": "server/server.js" },
-      { "src": "/signup/(.*)", "dest": "server/server.js" },
-      { "src": "/admin", "dest": "server/server.js" },
-      { "src": "/api/(.*)", "dest": "server/server.js" },
-      { "src": "/(.*)", "dest": "/$1" }
-    ]
-  }
+  "version": 2,
+  "builds": [
+    { "src": "server/server.js", "use": "@vercel/node" },
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "static/**", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "server/server.js" },
+    { "src": "/admin", "dest": "server/server.js" },
+    { "src": "/(.*)", "dest": "/$1" },
+    { "src": "/signup", "dest": "server/server.js" },
+    { "src": "/signup/(.*)", "dest": "server/server.js" }
+  ]
+}
