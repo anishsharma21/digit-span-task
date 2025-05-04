@@ -9,13 +9,13 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            min-height: 100vh; /* Changed from height to min-height */
+            min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Changed from center to flex-start */
+            align-items: center;
             background-color: #f5f5f5;
-            padding: 20px 0; /* Add some padding top and bottom */
-            overflow-y: auto; /* Allow scrolling if needed */
+            padding: 20px 0;
+            overflow-y: auto;
         }
 
         .container {
@@ -26,7 +26,7 @@
             width: 90%;
             max-width: 800px;
             text-align: center;
-            margin: 40px 0; /* Add margin to ensure it doesn't touch the edges */
+            margin: 0;
         }
     
         h1 {
@@ -41,6 +41,27 @@
             background-color: #e9f7ef;
             border-radius: 6px;
             line-height: 1.6;
+        }
+        
+        .feedback {
+            font-size: 22px;
+            margin: 40px 0;
+            padding: 20px;
+            border-radius: 6px;
+            line-height: 1.6;
+            font-weight: bold;
+        }
+        
+        .feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
         }
         
         .instruction-text {
@@ -60,6 +81,31 @@
             font-weight: bold;
             color: #2C3E50;
             margin-bottom: 50px;
+        }
+        
+        .digit-display {
+            font-size: 120px;
+            font-weight: bold;
+            margin: 60px 0;
+            min-height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .response-container {
+            margin: 40px 0;
+        }
+        
+        .response-input {
+            font-size: 24px;
+            padding: 15px;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            border: 2px solid #4CAF50;
+            border-radius: 4px;
+            margin: 20px 0;
         }
     
         .button-group {
@@ -142,6 +188,54 @@
                     If the instructions are clear, click on Next!
                 </div>
             </div>
+            
+            <!-- Step 3: Practice Introduction -->
+            <div id="step3" class="step">
+                <h1>Practice</h1>
+                <div class="message">
+                    First, you can practice the task a little bit.
+                    <br><br>
+                </div>
+                <button type="button" id="startPracticeButton" class="submit-button">Start Practice</button>
+            </div>
+            
+            <!-- Step 4: Digit Display -->
+            <div id="step4" class="step">
+                <h1>Memorize</h1>
+                <div class="digit-display" id="digitDisplay"></div>
+            </div>
+            
+            <!-- Step 5: Response Entry -->
+            <div id="step5" class="step">
+                <h1>Recall</h1>
+                <div class="message">
+                    What numbers have you seen?
+                    <br><br>
+                    Enter them in order in the text box below!
+                </div>
+                <div class="response-container">
+                    <input type="text" id="responseInput" class="response-input" inputmode="numeric" pattern="[0-9]*" autofocus>
+                </div>
+                <button type="button" id="submitButton" class="submit-button">Submit</button>
+            </div>
+            
+            <!-- Step 6: Feedback -->
+            <div id="step6" class="step">
+                <h1>Feedback</h1>
+                <div class="feedback" id="feedbackMessage"></div>
+                <button type="button" id="continueButton" class="submit-button">Continue</button>
+            </div>
+            
+            <!-- Step 7: Completion -->
+            <div id="step7" class="step">
+                <h1>Practice Completed</h1>
+                <div class="message">
+                    You have successfully completed the practice.
+                    <br><br>
+                    The actual task will begin now.
+                </div>
+                <button type="button" id="startTaskButton">Start Task</button>
+            </div>
         </div>
         
         <!-- Navigation buttons -->
@@ -158,22 +252,86 @@
             
             // Initialize step tracking
             let currentStep = 1;
-            const totalSteps = 2; // Increase this as you add more steps
+            const totalSteps = 7;
             
             const prevButton = document.getElementById('prevButton');
             const nextButton = document.getElementById('nextButton');
+            const buttonGroup = document.querySelector('.button-group');
+            
+            // Variables for digit span practice
+            let practiceDigits = [];
+            let currentDisplayIndex = 0;
+            let practiceAttempts = 0;
+            let consecutiveCorrectAnswers = 0;
+            let savedUserResponse = ""; // Store user response here
+            
+            // Function to generate random digits
+            function generateRandomDigits(count) {
+                let digits = [];
+                for (let i = 0; i < count; i++) {
+                    digits.push(Math.floor(Math.random() * 10)); // Random digit 0-9
+                }
+                return digits;
+            }
+            
+            // Function to display digits in sequence
+            function displayDigitSequence() {
+                const digitDisplay = document.getElementById('digitDisplay');
+                const displayDelay = 700; // 0.7 seconds per digit
+                const interDigitDelay = 300; // 0.3 seconds between digits
+                
+                // Hide navigation during display
+                buttonGroup.style.display = 'none';
+                
+                // Clear display
+                digitDisplay.textContent = '';
+                currentDisplayIndex = 0;
+                
+                // Show each digit in sequence
+                function showNextDigit() {
+                    if (currentDisplayIndex < practiceDigits.length) {
+                        digitDisplay.textContent = practiceDigits[currentDisplayIndex];
+                        currentDisplayIndex++;
+                        
+                        // Schedule hiding of digit
+                        setTimeout(() => {
+                            digitDisplay.textContent = '';
+                            
+                            // Schedule next digit or move to response
+                            setTimeout(() => {
+                                if (currentDisplayIndex < practiceDigits.length) {
+                                    showNextDigit();
+                                } else {
+                                    // Move to response step
+                                    currentStep = 5;
+                                    showCurrentStep();
+                                }
+                            }, interDigitDelay);
+                        }, displayDelay);
+                    }
+                }
+                
+                // Start the sequence
+                showNextDigit();
+            }
             
             // Function to update button states
             function updateButtonStates() {
-                prevButton.disabled = (currentStep === 1);
-                nextButton.disabled = (currentStep === totalSteps);
-                
-                // You can change the next button text on the last step if needed
-                // if (currentStep === totalSteps) {
-                //     nextButton.textContent = "Finish";
-                // } else {
-                //     nextButton.textContent = "Next";
-                // }
+                // Only show navigation on steps 1, 2, and 3 (before digit display begins)
+                if (currentStep >= 4 && currentStep <= 6) {
+                    buttonGroup.style.display = 'none';
+                } else {
+                    buttonGroup.style.display = 'flex';
+                    prevButton.disabled = (currentStep === 1);
+                    
+                    // Only hide next button on step 3
+                    if (currentStep === 3) {
+                        nextButton.style.display = 'none';
+                    } else {
+                        nextButton.style.display = 'block';
+                        nextButton.disabled = false;
+                    }
+                }
             }
             
             // Function to show the current step
@@ -189,9 +347,145 @@
                     currentStepElement.classList.add('active');
                 } else {
                     console.error(`Step ${currentStep} element not found`);
+                    return; // Exit if step not found
+                }
+                
+                // Immediately clear input field when showing response step
+                if (currentStep === 5) {
+                    const responseInput = document.getElementById('responseInput');
+                    if (responseInput) {
+                        responseInput.value = ''; // Clear immediately
+                    }
                 }
                 
                 updateButtonStates();
+                
+                // Setup specific steps
+                setupCurrentStep();
+            }
+            
+            // Set up the current step's functionality
+            function setupCurrentStep() {
+                // Reset all relevant event handlers first
+                resetEventHandlers();
+                
+                // Step-specific setup
+                switch (currentStep) {
+                    case 3: // Practice intro
+                        practiceDigits = generateRandomDigits(2);
+                        document.getElementById('startPracticeButton').addEventListener('click', startPractice);
+                        break;
+                        
+                    case 5: // Response entry
+                        // Focus on input field
+                        setTimeout(() => {
+                            const responseInput = document.getElementById('responseInput');
+                            if (responseInput) {
+                                responseInput.value = ''; // Clear previous input
+                                responseInput.focus();
+                                
+                                // Add submit handler
+                                document.getElementById('submitButton').addEventListener('click', handleSubmit);
+                                
+                                // Add Enter key handler
+                                responseInput.addEventListener('keydown', function handleEnterKey(e) {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault(); // Prevent form submission
+                                        handleSubmit();
+                                    }
+                                });
+                            }
+                        }, 300);
+                        break;
+                        
+                    case 6: // Feedback
+                        document.getElementById('continueButton').addEventListener('click', handleFeedbackContinue);
+                        break;
+                        
+                    case 7: // Completion
+                        document.getElementById('startTaskButton').addEventListener('click', function() {
+                            alert("This would navigate to the actual task. Placeholder for now.");
+                        });
+                        break;
+                }
+            }
+            
+            // Reset event handlers to prevent duplicates
+            function resetEventHandlers() {
+                // Clone and replace elements to remove all event listeners
+                const elementsToReset = ['startPracticeButton', 'submitButton', 'continueButton', 'startTaskButton'];
+                
+                elementsToReset.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.replaceWith(element.cloneNode(true));
+                    }
+                });
+            }
+            
+            // Function to start practice
+            function startPractice() {
+                currentStep = 4;
+                showCurrentStep();
+                displayDigitSequence();
+            }
+            
+            // Function to handle submit button click
+            function handleSubmit() {
+                // Get input value immediately to prevent timing issues
+                const responseInput = document.getElementById('responseInput');
+                savedUserResponse = responseInput.value.trim();
+                
+                // Don't proceed if empty
+                if (savedUserResponse === '') {
+                    alert("Please enter the numbers you saw.");
+                    return;
+                }
+                
+                const correctResponse = practiceDigits.join('');
+                
+                // Move to feedback step
+                currentStep = 6;
+                
+                // Show the feedback view first
+                showCurrentStep();
+                
+                // Then update the feedback content
+                const feedbackMessage = document.getElementById('feedbackMessage');
+                
+                if (savedUserResponse === correctResponse) {
+                    // Don't increment consecutiveCorrectAnswers here - do it in handleFeedbackContinue
+                    feedbackMessage.textContent = `Correct! You entered the numbers correctly. (${consecutiveCorrectAnswers+1}/2)`;
+                    feedbackMessage.className = "feedback correct";
+                    practiceAttempts = 0;
+                } else {
+                    practiceAttempts++;
+                    feedbackMessage.textContent = `Incorrect. You entered "${savedUserResponse}" but the correct sequence was "${correctResponse}". Let's try again.`;
+                    feedbackMessage.className = "feedback incorrect";
+                }
+            }
+            
+            // Function to handle continue button on feedback screen
+            function handleFeedbackContinue() {
+                const feedbackMessage = document.getElementById('feedbackMessage');
+                
+                // Always clear the saved response when continuing
+                savedUserResponse = "";
+                
+                if (feedbackMessage.classList.contains('correct')) {
+                    consecutiveCorrectAnswers++; // Increment counter for correct answers
+                    
+                    if (consecutiveCorrectAnswers >= 2) {
+                        currentStep = 7; // Move to completion step after 2 correct answers
+                    } else {
+                        currentStep = 3; // Go back to practice for another correct answer
+                    }
+                } else {
+                    consecutiveCorrectAnswers = 0; // Reset counter on incorrect answer
+                    currentStep = 3; // Go back to practice step
+                }
+                
+                showCurrentStep();
             }
             
             // Set up event listeners for navigation buttons
@@ -206,11 +500,6 @@
                 if (currentStep < totalSteps) {
                     currentStep++;
                     showCurrentStep();
-                } else {
-                    // Handle completion of the task or move to the next phase
-                    console.log("Task completed or moving to next phase");
-                    // You can add navigation to another page here if needed
-                    // window.location.href = "results.html";
                 }
             });
             
