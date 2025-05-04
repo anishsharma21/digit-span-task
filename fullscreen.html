@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digit Span Task - Fullscreen Notice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    
+        .container {
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+    
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        
+        .message {
+            text-align: center;
+            font-size: 18px;
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-radius: 6px;
+            border-left: 4px solid #4CAF50;
+            line-height: 1.6;
+        }
+    
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            display: block;
+            margin: 30px auto 0;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Digit Span Task</h1>
+        
+        <div class="message">
+            The experiment will switch to full screen mode when you press the button below.
+        </div>
+        
+        <button type="button" id="continueButton">Continue</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the task ID from localStorage for future use
+            const taskId = localStorage.getItem('digitSpanTaskId');
+            
+            // Set up button event listener
+            document.getElementById('continueButton').addEventListener('click', function() {
+                // Request fullscreen
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen()
+                        .then(() => {
+                            // Navigate to next page after fullscreen is activated
+                            setTimeout(() => {
+                                window.location.href = "task.html";
+                            }, 500);
+                        })
+                        .catch(err => {
+                            console.error('Error attempting to enable fullscreen:', err);
+                            alert("Couldn't enter fullscreen mode. The experiment will continue in the current window.");
+                            window.location.href = "task.html";
+                        });
+                } else if (document.documentElement.mozRequestFullScreen) {
+                    document.documentElement.mozRequestFullScreen();
+                    setTimeout(() => { window.location.href = "task.html"; }, 500);
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                    setTimeout(() => { window.location.href = "task.html"; }, 500);
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                    setTimeout(() => { window.location.href = "task.html"; }, 500);
+                } else {
+                    // If fullscreen is not supported, continue anyway
+                    alert("Fullscreen not supported on your browser. The experiment will continue in the current window.");
+                    window.location.href = "task.html";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
