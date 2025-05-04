@@ -297,8 +297,6 @@
             
             // Simplified digit display function that uses a queue and setTimeout
             function displayDigitSequence(digits) {
-                console.log("Starting to display digits:", digits);
-                
                 const digitDisplay = document.getElementById('digitDisplay');
                 if (!digitDisplay) return;
                 
@@ -328,7 +326,6 @@
                     
                     // Show current digit
                     digitDisplay.textContent = digits[index];
-                    console.log(`Showing digit ${index+1}/${digits.length}: ${digits[index]}`);
                     
                     // Schedule hiding this digit and showing the next one
                     setTimeout(() => {
@@ -489,9 +486,6 @@
                                 .then(data => {
                                     sendResultsButton.textContent = "Results Saved!";
                                     sendResultsButton.style.backgroundColor = "#28a745";
-                                    setTimeout(() => {
-                                        window.close(); // Close the current tab
-                                    }, 2000); // Delay to show success message
                                 })
                                 .catch(error => {
                                     console.error('Error:', error);
@@ -521,7 +515,6 @@
             function startPractice() {
                 // Generate new practice digits
                 practiceDigits = generateRandomDigits(2);
-                console.log("Practice digits:", practiceDigits);
                 
                 // Change step
                 currentStep = 4;
@@ -538,7 +531,6 @@
                 
                 // Generate digits for first level
                 practiceDigits = generateRandomDigits(currentDigitSpan);
-                console.log("Starting actual task with digits:", practiceDigits);
                 
                 // Start digit display
                 currentStep = 4;
@@ -637,7 +629,6 @@
                         // First attempt completed - prepare second attempt
                         currentLevelAttempts++;
                         practiceDigits = generateRandomDigits(currentDigitSpan);
-                        console.log(`Attempt ${currentLevelAttempts+1}/${maxAttemptsPerLevel} at level ${currentDigitSpan}, digits:`, practiceDigits);
                         currentStep = 4; // Go to digit display
                     } else {
                         // Both attempts completed
@@ -653,7 +644,6 @@
                                 currentLevelAttempts = 0;
                                 successfulAttemptsAtCurrentLevel = 0;
                                 practiceDigits = generateRandomDigits(currentDigitSpan);
-                                console.log(`Moving to next level ${currentDigitSpan}, digits:`, practiceDigits);
                                 currentStep = 4; // Go to digit display
                             }
                         } else {
