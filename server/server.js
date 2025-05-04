@@ -79,8 +79,9 @@ app.post('/api/save-result', async (req, res) => {
 // Admin endpoint to view results
 app.get('/admin', async (req, res) => {
     // Simple password protection
+    const environmentPassword = process.env.ADMIN_PASSWORD;
     const password = req.query.password;
-    if (password !== 'psychPdigit123') { // Change this to a secure password
+    if (password !== environmentPassword) {
         return res.status(401).send('Unauthorized');
     }
 

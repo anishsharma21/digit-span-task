@@ -486,6 +486,8 @@
                                 .then(data => {
                                     sendResultsButton.textContent = "Results Saved!";
                                     sendResultsButton.style.backgroundColor = "#28a745";
+                                    const message = document.querySelector('.feedback.correct');
+                                    message.textContent = "Thank you for participating! You may now close this tab.";
                                 })
                                 .catch(error => {
                                     console.error('Error:', error);
