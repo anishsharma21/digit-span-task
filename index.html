@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digit Span Task</title>
+    <title>Digit Span Task - Home</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -112,7 +112,7 @@
                 
                 // Store the values (if needed for future use)
                 localStorage.setItem('digitSpanTaskId', digitSpanTaskId.value);
-                console.log('Digit Span Task ID:', digitSpanTaskId.value);
+                window.location.href = "confirmation.html";
             });
         });
     </script>
