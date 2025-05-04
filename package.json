@@ -1,0 +1,9 @@
+{
+  "name": "digit-span-task",
+  "version": "1.0.0",
+  "description": "Digit Span Task with MongoDB backend",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "dependencies": {}
+}

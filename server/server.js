@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 // MongoDB Connection URI
 // Replace with your MongoDB Atlas connection string or use environment variable
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://anisharma2103:cDwB44Cq7Rtbp45C@cluster0.gk7wudo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = 'digitSpan';
 const COLLECTION_NAME = 'results';
 
