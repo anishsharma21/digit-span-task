@@ -6,8 +6,6 @@
     { "src": "static/**", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/signup", "dest": "server/server.js" },
-    { "src": "/signup/(.*)", "dest": "server/server.js" },
     { "src": "/api/(.*)", "dest": "server/server.js" },
     { "src": "/admin", "dest": "server/server.js" },
     { "src": "/(.*)\\.html", "dest": "/$1.html" },
