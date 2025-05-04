@@ -236,6 +236,19 @@
                 </div>
                 <button type="button" id="startTaskButton">Start Task</button>
             </div>
+
+            <!-- Step 8: Final Score -->
+            <div id="step8" class="step">
+                <h1>Task Completed</h1>
+                <div class="message">
+                    Your digit span score is: <span id="finalScore" style="font-size: 36px; font-weight: bold; color: #4CAF50;"></span>
+                    <br><br>
+                    This means you can remember <span id="finalScoreText"></span> digits in sequence.
+                </div>
+                <div class="feedback correct" style="margin-top: 40px;">
+                    Thank you for participating in this task!
+                </div>
+            </div>
         </div>
         
         <!-- Navigation buttons -->
@@ -252,7 +265,7 @@
             
             // Initialize step tracking
             let currentStep = 1;
-            const totalSteps = 7;
+            const totalSteps = 8;
             
             const prevButton = document.getElementById('prevButton');
             const nextButton = document.getElementById('nextButton');
@@ -260,10 +273,17 @@
             
             // Variables for digit span practice
             let practiceDigits = [];
-            let currentDisplayIndex = 0;
-            let practiceAttempts = 0;
             let consecutiveCorrectAnswers = 0;
-            let savedUserResponse = ""; // Store user response here
+            let savedUserResponse = "";
+            
+            // Variables for main task
+            let currentDigitSpan = 3;  // Start with 3 digits
+            let maxDigitSpan = 9;      // Maximum of 9 digits
+            let currentLevelAttempts = 0;  // Track attempts at current level (0 or 1)
+            let maxAttemptsPerLevel = 2;   // Two attempts per level
+            let finalScore = 0;            // Final score to display
+            let isTaskActive = false;      // Flag to distinguish between practice and actual task
+            let successfulAttemptsAtCurrentLevel = 0; // Track correct responses at current level
             
             // Function to generate random digits
             function generateRandomDigits(count) {
@@ -274,57 +294,65 @@
                 return digits;
             }
             
-            // Function to display digits in sequence
-            function displayDigitSequence() {
-                const digitDisplay = document.getElementById('digitDisplay');
-                const displayDelay = 700; // 0.7 seconds per digit
-                const interDigitDelay = 300; // 0.3 seconds between digits
+            // Simplified digit display function that uses a queue and setTimeout
+            function displayDigitSequence(digits) {
+                console.log("Starting to display digits:", digits);
                 
-                // Hide navigation during display
+                const digitDisplay = document.getElementById('digitDisplay');
+                if (!digitDisplay) return;
+                
+                // Hide navigation
                 buttonGroup.style.display = 'none';
                 
                 // Clear display
                 digitDisplay.textContent = '';
-                currentDisplayIndex = 0;
                 
-                // Show each digit in sequence
-                function showNextDigit() {
-                    if (currentDisplayIndex < practiceDigits.length) {
-                        digitDisplay.textContent = practiceDigits[currentDisplayIndex];
-                        currentDisplayIndex++;
-                        
-                        // Schedule hiding of digit
+                const displayTime = 700;  // ms per digit
+                const pauseTime = 300;    // ms between digits
+                let index = 0;
+                
+                // Display first digit
+                displayNextDigit();
+                
+                // Function to display the next digit in sequence
+                function displayNextDigit() {
+                    if (index >= digits.length) {
+                        // All digits shown, move to response screen
                         setTimeout(() => {
-                            digitDisplay.textContent = '';
-                            
-                            // Schedule next digit or move to response
-                            setTimeout(() => {
-                                if (currentDisplayIndex < practiceDigits.length) {
-                                    showNextDigit();
-                                } else {
-                                    // Move to response step
-                                    currentStep = 5;
-                                    showCurrentStep();
-                                }
-                            }, interDigitDelay);
-                        }, displayDelay);
+                            currentStep = 5;
+                            showCurrentStep();
+                        }, pauseTime);
+                        return;
                     }
+                    
+                    // Show current digit
+                    digitDisplay.textContent = digits[index];
+                    console.log(`Showing digit ${index+1}/${digits.length}: ${digits[index]}`);
+                    
+                    // Schedule hiding this digit and showing the next one
+                    setTimeout(() => {
+                        // Hide current digit
+                        digitDisplay.textContent = '';
+                        
+                        // Schedule next digit
+                        setTimeout(() => {
+                            index++;
+                            displayNextDigit();
+                        }, pauseTime);
+                    }, displayTime);
                 }
-                
-                // Start the sequence
-                showNextDigit();
             }
             
             // Function to update button states
             function updateButtonStates() {
-                // Only show navigation on steps 1, 2, and 3 (before digit display begins)
-                if (currentStep >= 4 && currentStep <= 6) {
+                // Only show navigation on steps 1, 2, 3, and 7
+                if ((currentStep >= 4 && currentStep <= 6) || currentStep === 8) {
                     buttonGroup.style.display = 'none';
                 } else {
                     buttonGroup.style.display = 'flex';
                     prevButton.disabled = (currentStep === 1);
                     
-                    // Only hide next button on step 3
+                    // Hide next button on step 3
                     if (currentStep === 3) {
                         nextButton.style.display = 'none';
                     } else {
@@ -350,17 +378,29 @@
                     return; // Exit if step not found
                 }
                 
-                // Immediately clear input field when showing response step
+                // Special handling for certain steps
                 if (currentStep === 5) {
+                    // Response entry step
                     const responseInput = document.getElementById('responseInput');
                     if (responseInput) {
                         responseInput.value = ''; // Clear immediately
+                        if (isTaskActive) {
+                            document.querySelector('#step5 h1').textContent = `Recall (${currentDigitSpan} digits)`;
+                        } else {
+                            document.querySelector('#step5 h1').textContent = 'Recall';
+                        }
+                    }
+                } else if (currentStep === 8) {
+                    // Final score screen
+                    const scoreMessage = document.getElementById('finalScore');
+                    const scoreText = document.getElementById('finalScoreText');
+                    if (scoreMessage && scoreText) {
+                        scoreMessage.textContent = finalScore;
+                        scoreText.textContent = `${finalScore} digits in sequence`;
                     }
                 }
                 
                 updateButtonStates();
-                
-                // Setup specific steps
                 setupCurrentStep();
             }
             
@@ -372,8 +412,13 @@
                 // Step-specific setup
                 switch (currentStep) {
                     case 3: // Practice intro
-                        practiceDigits = generateRandomDigits(2);
+                        isTaskActive = false;
                         document.getElementById('startPracticeButton').addEventListener('click', startPractice);
+                        break;
+                        
+                    case 4: // Digit Display
+                        // Start showing digits after a delay
+                        setTimeout(() => displayDigitSequence(practiceDigits), 500);
                         break;
                         
                     case 5: // Response entry
@@ -381,16 +426,11 @@
                         setTimeout(() => {
                             const responseInput = document.getElementById('responseInput');
                             if (responseInput) {
-                                responseInput.value = ''; // Clear previous input
                                 responseInput.focus();
-                                
-                                // Add submit handler
                                 document.getElementById('submitButton').addEventListener('click', handleSubmit);
-                                
-                                // Add Enter key handler
-                                responseInput.addEventListener('keydown', function handleEnterKey(e) {
+                                responseInput.addEventListener('keydown', function(e) {
                                     if (e.key === 'Enter') {
-                                        e.preventDefault(); // Prevent form submission
+                                        e.preventDefault();
                                         handleSubmit();
                                     }
                                 });
@@ -402,17 +442,14 @@
                         document.getElementById('continueButton').addEventListener('click', handleFeedbackContinue);
                         break;
                         
-                    case 7: // Completion
-                        document.getElementById('startTaskButton').addEventListener('click', function() {
-                            alert("This would navigate to the actual task. Placeholder for now.");
-                        });
+                    case 7: // Practice complete / Start actual task
+                        document.getElementById('startTaskButton').addEventListener('click', startActualTask);
                         break;
                 }
             }
             
             // Reset event handlers to prevent duplicates
             function resetEventHandlers() {
-                // Clone and replace elements to remove all event listeners
                 const elementsToReset = ['startPracticeButton', 'submitButton', 'continueButton', 'startTaskButton'];
                 
                 elementsToReset.forEach(id => {
@@ -425,14 +462,34 @@
             
             // Function to start practice
             function startPractice() {
+                // Generate new practice digits
+                practiceDigits = generateRandomDigits(2);
+                console.log("Practice digits:", practiceDigits);
+                
+                // Change step
                 currentStep = 4;
                 showCurrentStep();
-                displayDigitSequence();
+            }
+            
+            // Function to start actual task
+            function startActualTask() {
+                isTaskActive = true;
+                currentDigitSpan = 3;
+                currentLevelAttempts = 0;
+                successfulAttemptsAtCurrentLevel = 0;
+                finalScore = 0;
+                
+                // Generate digits for first level
+                practiceDigits = generateRandomDigits(currentDigitSpan);
+                console.log("Starting actual task with digits:", practiceDigits);
+                
+                // Start digit display
+                currentStep = 4;
+                showCurrentStep();
             }
             
             // Function to handle submit button click
             function handleSubmit() {
-                // Get input value immediately to prevent timing issues
                 const responseInput = document.getElementById('responseInput');
                 savedUserResponse = responseInput.value.trim();
                 
@@ -443,67 +500,147 @@
                 }
                 
                 const correctResponse = practiceDigits.join('');
+                const isCorrect = (savedUserResponse === correctResponse);
                 
                 // Move to feedback step
                 currentStep = 6;
-                
-                // Show the feedback view first
                 showCurrentStep();
                 
-                // Then update the feedback content
+                // Update feedback content
                 const feedbackMessage = document.getElementById('feedbackMessage');
                 
-                if (savedUserResponse === correctResponse) {
-                    // Don't increment consecutiveCorrectAnswers here - do it in handleFeedbackContinue
-                    feedbackMessage.textContent = `Correct! You entered the numbers correctly. (${consecutiveCorrectAnswers+1}/2)`;
-                    feedbackMessage.className = "feedback correct";
-                    practiceAttempts = 0;
+                if (isTaskActive) {
+                    // Main task feedback
+                    if (isCorrect) {
+                        // Count successful attempt
+                        successfulAttemptsAtCurrentLevel++;
+                        
+                        feedbackMessage.textContent = `Correct! You successfully remembered ${currentDigitSpan} digits.`;
+                        feedbackMessage.className = "feedback correct";
+                        
+                        // Display different message based on attempt number
+                        if (currentLevelAttempts === 0) {
+                            // First attempt success
+                            document.getElementById('continueButton').textContent = "Continue to Second Sequence";
+                        } else {
+                            // Second attempt success
+                            if (currentDigitSpan >= maxDigitSpan) {
+                                document.getElementById('continueButton').textContent = "See Final Score";
+                            } else {
+                                document.getElementById('continueButton').textContent = "Continue to Next Level";
+                            }
+                        }
+                    } else {
+                        // Incorrect response
+                        feedbackMessage.textContent = `Incorrect. You entered "${savedUserResponse}" but the correct sequence was "${correctResponse}".`;
+                        feedbackMessage.className = "feedback incorrect";
+                        
+                        if (currentLevelAttempts === 0) {
+                            // First attempt failure
+                            document.getElementById('continueButton').textContent = "Try Second Sequence";
+                        } else {
+                            // Second attempt failure
+                            if (successfulAttemptsAtCurrentLevel > 0) {
+                                // Had one successful attempt
+                                if (currentDigitSpan >= maxDigitSpan) {
+                                    document.getElementById('continueButton').textContent = "See Final Score";
+                                } else {
+                                    document.getElementById('continueButton').textContent = "Continue to Next Level";
+                                }
+                            } else {
+                                // No successful attempts
+                                document.getElementById('continueButton').textContent = "See Final Score";
+                            }
+                        }
+                    }
                 } else {
-                    practiceAttempts++;
-                    feedbackMessage.textContent = `Incorrect. You entered "${savedUserResponse}" but the correct sequence was "${correctResponse}". Let's try again.`;
-                    feedbackMessage.className = "feedback incorrect";
+                    // Practice feedback
+                    if (isCorrect) {
+                        feedbackMessage.textContent = `Correct! You entered the numbers correctly. (${consecutiveCorrectAnswers+1}/2)`;
+                        feedbackMessage.className = "feedback correct";
+                    } else {
+                        feedbackMessage.textContent = `Incorrect. You entered "${savedUserResponse}" but the correct sequence was "${correctResponse}". Let's try again.`;
+                        feedbackMessage.className = "feedback incorrect";
+                    }
                 }
             }
             
             // Function to handle continue button on feedback screen
             function handleFeedbackContinue() {
                 const feedbackMessage = document.getElementById('feedbackMessage');
+                const isCorrect = feedbackMessage.classList.contains('correct');
                 
-                // Always clear the saved response when continuing
+                // Reset button text
+                document.getElementById('continueButton').textContent = "Continue";
                 savedUserResponse = "";
                 
-                if (feedbackMessage.classList.contains('correct')) {
-                    consecutiveCorrectAnswers++; // Increment counter for correct answers
-                    
-                    if (consecutiveCorrectAnswers >= 2) {
-                        currentStep = 7; // Move to completion step after 2 correct answers
+                if (isTaskActive) {
+                    // Main task logic
+                    if (currentLevelAttempts < maxAttemptsPerLevel - 1) {
+                        // First attempt completed - prepare second attempt
+                        currentLevelAttempts++;
+                        practiceDigits = generateRandomDigits(currentDigitSpan);
+                        console.log(`Attempt ${currentLevelAttempts+1}/${maxAttemptsPerLevel} at level ${currentDigitSpan}, digits:`, practiceDigits);
+                        currentStep = 4; // Go to digit display
                     } else {
-                        currentStep = 3; // Go back to practice for another correct answer
+                        // Both attempts completed
+                        if (successfulAttemptsAtCurrentLevel > 0) {
+                            // At least one attempt was successful
+                            if (currentDigitSpan >= maxDigitSpan) {
+                                // Reached max level - complete the task
+                                finalScore = currentDigitSpan;
+                                currentStep = 8; // Go to final score
+                            } else {
+                                // Move to next level
+                                currentDigitSpan++;
+                                currentLevelAttempts = 0;
+                                successfulAttemptsAtCurrentLevel = 0;
+                                practiceDigits = generateRandomDigits(currentDigitSpan);
+                                console.log(`Moving to next level ${currentDigitSpan}, digits:`, practiceDigits);
+                                currentStep = 4; // Go to digit display
+                            }
+                        } else {
+                            // Both attempts failed - task is over
+                            finalScore = currentDigitSpan - 1;
+                            if (finalScore < 0) finalScore = 0; // Prevent negative scores
+                            currentStep = 8; // Go to final score
+                        }
                     }
                 } else {
-                    consecutiveCorrectAnswers = 0; // Reset counter on incorrect answer
-                    currentStep = 3; // Go back to practice step
+                    // Practice logic
+                    if (isCorrect) {
+                        consecutiveCorrectAnswers++;
+                        
+                        if (consecutiveCorrectAnswers >= 2) {
+                            currentStep = 7; // Practice complete
+                        } else {
+                            currentStep = 3; // Back to practice intro
+                        }
+                    } else {
+                        consecutiveCorrectAnswers = 0;
+                        currentStep = 3; // Back to practice intro
+                    }
                 }
                 
                 showCurrentStep();
             }
             
-            // Set up event listeners for navigation buttons
-            prevButton.addEventListener('click', function() {
+            // Set up navigation button event listeners
+            prevButton.addEventListener('click', () => {
                 if (currentStep > 1) {
                     currentStep--;
                     showCurrentStep();
                 }
             });
             
-            nextButton.addEventListener('click', function() {
+            nextButton.addEventListener('click', () => {
                 if (currentStep < totalSteps) {
                     currentStep++;
                     showCurrentStep();
                 }
             });
             
-            // Initialize with the first step
+            // Start with the first step
             showCurrentStep();
         });
     </script>

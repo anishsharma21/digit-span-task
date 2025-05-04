@@ -77,34 +77,30 @@
             
             // Set up button event listener
             document.getElementById('continueButton').addEventListener('click', function() {
-                // Request fullscreen
-                if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen()
-                        .then(() => {
-                            // Navigate to next page after fullscreen is activated
-                            setTimeout(() => {
-                                window.location.href = "task.html";
-                            }, 500);
-                        })
-                        .catch(err => {
-                            console.error('Error attempting to enable fullscreen:', err);
-                            alert("Couldn't enter fullscreen mode. The experiment will continue in the current window.");
-                            window.location.href = "task.html";
-                        });
-                } else if (document.documentElement.mozRequestFullScreen) {
-                    document.documentElement.mozRequestFullScreen();
-                    setTimeout(() => { window.location.href = "task.html"; }, 500);
-                } else if (document.documentElement.webkitRequestFullscreen) {
-                    document.documentElement.webkitRequestFullscreen();
-                    setTimeout(() => { window.location.href = "task.html"; }, 500);
-                } else if (document.documentElement.msRequestFullscreen) {
-                    document.documentElement.msRequestFullscreen();
-                    setTimeout(() => { window.location.href = "task.html"; }, 500);
-                } else {
-                    // If fullscreen is not supported, continue anyway
-                    alert("Fullscreen not supported on your browser. The experiment will continue in the current window.");
+            // Request fullscreen
+            const requestFullscreen = document.documentElement.requestFullscreen || 
+                           document.documentElement.mozRequestFullScreen || 
+                           document.documentElement.webkitRequestFullscreen || 
+                           document.documentElement.msRequestFullscreen;
+
+            if (requestFullscreen) {
+                requestFullscreen.call(document.documentElement)
+                .then(() => {
+                    // Navigate to next page after fullscreen is activated
+                    setTimeout(() => {
                     window.location.href = "task.html";
-                }
+                    }, 500);
+                })
+                .catch(err => {
+                    console.error('Error attempting to enable fullscreen:', err);
+                    alert("Couldn't enter fullscreen mode. The experiment will continue in the current window.");
+                    window.location.href = "task.html";
+                });
+            } else {
+                // If fullscreen is not supported, continue anyway
+                alert("Fullscreen not supported on your browser. The experiment will continue in the current window.");
+                window.location.href = "task.html";
+            }
             });
         });
     </script>
