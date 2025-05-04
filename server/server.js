@@ -12,16 +12,13 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = 'digitSpan';
 const COLLECTION_NAME = 'results';
 
+if (!MONGODB_URI) {
+    console.error('MongoDB connection string is not defined. Please set the MONGODB_URI environment variable.');
+    process.exit(1);
+}
+
 // MongoDB client
-const client = new MongoClient(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    ssl: true,
-    tls: true,
-    tlsAllowInvalidCertificates: false,
-    connectTimeoutMS: 10000,
-    serverSelectionTimeoutMS: 10000
-});
+const client = new MongoClient(MONGODB_URI);
 
 // Middleware
 app.use(cors());
