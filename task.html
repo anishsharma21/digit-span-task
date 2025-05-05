@@ -343,8 +343,8 @@
             
             // Function to update button states
             function updateButtonStates() {
-                // Only show navigation on steps 1, 2, 3, and 7
-                if ((currentStep >= 4 && currentStep <= 6) || currentStep === 8) {
+                // Only show navigation on steps 1, 2, and 3
+                if (currentStep >= 4) {
                     buttonGroup.style.display = 'none';
                 } else {
                     buttonGroup.style.display = 'flex';
